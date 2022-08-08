@@ -1,0 +1,27 @@
+# yamllint disable rule:key-ordering
+# yamllint disable rule:line-length
+
+name: Check latest release version and update AUR packege
+# yamllint disable-line rule:truthy
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: 0 21 * * *
+
+jobs:
+  get_latest:
+    uses: rgeraskin/github-workflows-deploy-aur-on-thirdparty-repo/.github/workflows/get_latest.yaml@main
+    with:
+      release_url: https://api.github.com/repos/werf/werf/releases/latest
+      username: GitHub Actions
+    secrets:
+      email: 51863158+rgeraskin@users.noreply.github.com
+  aur_update:
+    uses: rgeraskin/github-workflows-deploy-aur-on-thirdparty-repo/.github/workflows/aur_update.yaml@main
+    needs: get_latest
+    if: needs.get_latest.outputs.modified == 'true'
+    with:
+      username: Roman Geraskin
+    secrets:
+      email: ${{ secrets.AUR_EMAIL }}
+      ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
